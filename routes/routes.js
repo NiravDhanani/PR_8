@@ -40,7 +40,7 @@ route.get('/edit',passport.checkUser,LoginController.edit);
 route.post('/updateprofile',passport.checkUser,LoginController.updateprofile);
 route.post('/updateprofileimg',fileUpload,LoginController.updateprofileimg);
 route.get('/changepassword',passport.checkUser,LoginController.changepassword);
-route.post('/changeloginPassword',LoginController.changeloginPassword);
+route.post('/changeloginPassword',passport.checkUser,LoginController.changeloginPassword);
 
 
 

@@ -1,4 +1,4 @@
-const LoginModel = require("../model/RegisterData");
+const RegisterModel = require("../model/RegisterData");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
@@ -39,7 +39,7 @@ const registerUser = async (req, res) => {
     // let hash = await bcrypt.hash(password, 10);
     let hashpassword = await bcrypt.hash(password, 10);
     if (password == cpassword) {
-      await LoginModel.create({
+      await RegisterModel.create({
         name,
         email,
         address,
@@ -95,7 +95,7 @@ const forgotpassword = async (req, res) => {
 const UserEmailCheck = async (req, res) => {
   try {
     let email = req.body.email;
-    let user = await LoginModel.findOne({ email: email });
+    let user = await RegisterModel.findOne({ email: email });
 
     if (user) {
       let otp = Math.floor(Math.random() * 10000);
@@ -177,7 +177,7 @@ const createnewpassword = async (req, res) => {
   try {
     const { newpassword, cnewpassword } = req.body;
     if (newpassword == cnewpassword) {
-      let user = await LoginModel.findOneAndUpdate({
+      let user = await RegisterModel.findOneAndUpdate({
         password: await bcrypt.hash(req.body.newpassword, 10),
       });
       res.clearCookie("otp");
@@ -206,7 +206,7 @@ const profile = (req, res) => {
 const edit = async (req, res) => {
   try {
     const userId = req.query.id;
-    const user = await LoginModel.findOne(userId);
+    const user = await RegisterModel.findOne(userId);
     return res.render("pages/profile/edit", { user });
   } catch (err) {
     console.log(err);
@@ -217,7 +217,7 @@ const edit = async (req, res) => {
 const updateprofile = async (req, res) => {
   try {
     const { id, name, email, address, contact, qualification, role } = req.body;
-    let update = await LoginModel.findOneAndUpdate(
+    let update = await RegisterModel.findOneAndUpdate(
       { _id: id },
       { name, email, address, contact, qualification, role }
     );
@@ -233,7 +233,7 @@ const updateprofile = async (req, res) => {
 const updateprofileimg = async (req, res) => {
   try {
     const id = req.body.id;
-    const old = await LoginModel.findOne({ _id: id });
+    const old = await RegisterModel.findOne({ _id: id });
 
     if (!old) {
       console.log("User not found");
@@ -250,7 +250,7 @@ const updateprofileimg = async (req, res) => {
       fs.unlinkSync(old.image);
     }
 
-    const update = await LoginModel.findOneAndUpdate(
+    const update = await RegisterModel.findOneAndUpdate(
       { _id: id },
       { image: req.file.path }
     );
@@ -272,26 +272,19 @@ const changepassword = async(req,res)=>{
   }
 }
 
-const changeloginPassword = async(req,res,email,password)=>{
+const changeloginPassword = async(req,res)=>{
   try{
-    let {currentpassword ,npassword,cnpassword} = req.body;
-    // let email = req.user.email;
-    let user = await LoginModel.findOne({email:email});
-    console.log(currentpassword);
-    let users = res.locals.users.password;
-    let match = await bcrypt.compare(password,user.password);
-    // let user =  await LoginModel.findOne({password : currentpassword});
-    console.log('user pas'+users);
-    // if(user){
-    //   if(npassword == cnpassword){
-    //     await LoginModel.findOneAndUpdate(
-    //       {password : npassword}
-    //     )
-    //   }       
-    // }
 
-    // console.log(`match`);
-  return res.redirect('back')
+    let user =  await RegisterModel.findOne({ email : req.body.email});
+    let match = await bcrypt.compare(req.body.currentpassword , user.password);
+    if(match){
+      await RegisterModel.findOneAndUpdate(
+        {email : req.body.email},
+        {password : await bcrypt.hash(req.body.npassword,10)}
+        )
+    }
+    console.log(`password change`);
+  return res.redirect('/profile')
   } catch(err){
     console.log(err);
     return false
